@@ -1,11 +1,17 @@
 import {Application, Sprite, Loader, Graphics, Container} from 'pixi.js';
 import * as PixiSound from 'pixi-sound';
+import Peer from 'peerjs';
 const sound = PixiSound.default.sound;
 
-const SCREEN_WIDTH = 360;
-const SCREEN_HEIGHT = 720;
+// Set up the app.
+const SCREEN_WIDTH = 800;
+const SCREEN_HEIGHT = 600;
 
-let app = new Application(SCREEN_WIDTH, SCREEN_HEIGHT, {backgroundColor : 0x1099bb});
+let app = new Application({
+    width: SCREEN_WIDTH, 
+    height: SCREEN_HEIGHT, 
+    backgroundColor : 0x1099bb
+});
 document.body.appendChild(app.view);
 
 
@@ -24,7 +30,7 @@ const init = (loader, resources) => {
         knight,
     } = resources;
 
-    song.sound.play();
+    // song.sound.play();
 
 
     knight = new Sprite(knight.texture);
