@@ -61,7 +61,9 @@ class SlideController {
   _init() {
     this.state._statePresenterListeners.slide = this._changeSlide;
     this.state._stateMainListeners.slide = this._changeSlide;
+
     //this._initPeer();
+    this._initControls();
   }
   // Initalizes everything to do with peers.
   _initPeer() {
@@ -176,12 +178,20 @@ class SlideController {
   }
   // Initalizes control hotkeys.
   _initControls() {
-    const left = Keyboard('ArrowLeft'),
-    right = Keyboard('ArrowRight'),
-    space = Keyboard('Space'),
-    l = Keyboard('KeyL');
-
-    left.press = () => {};
+    const { _user: { type } } = this.state;
+    if (type !== 'attendee') {
+      const left = Keyboard('ArrowLeft');
+      const right = Keyboard('ArrowRight');
+      // space = Keyboard('Space'),
+      // l = Keyboard('KeyL');
+  
+      left.press = () => {
+        this.state.stateMain.slide -= 1;
+      };
+      right.press = () => {
+        this.state.stateMain.slide += 1;
+      };
+    }
   }
   // Control related methods:
 
@@ -323,30 +333,72 @@ const slides = [
     return container;
   },
   (container) => {
-    const s2Title = new Text('What is PIXI.js?', styleHeader);
-    s2Title.x = -500;
-    s2Title.y = 50;
+    const Title = new Text('What is PIXI.js?', styleHeader);
+    Title.x = -500;
+    Title.y = 50;
 
-    container.addChild(s2Title);
+    container.addChild(Title);
     app.ticker.add(() => {
-      s2Title.x += Math.abs(s2Title.x - 50)/10
+      Title.x += Math.abs(Title.x - 50)/10
     })
 
     return container;
   },
   (container) => {
-    const s2Title = new Text('What is PIXI.js?', styleHeader);
-    s2Title.x = 50;
-    s2Title.y = 50;
+    const Title = new Text('What is PIXI.js?', styleHeader);
+    Title.x = 50;
+    Title.y = 50;
 
-    const s2Body = new Text('\t• Blah blah blah text."', styleBody);
-    s2Body.x = -w * + 70*2;
-    s2Body.y = 160;
+    const Body = new Text(`• It's a tried and true framework that improves the canvas API in almost every way.`, styleBody);
+    Body.x = -w * + 70*2;
+    Body.y = 160;
 
-    container.addChild(s2Body);
-    container.addChild(s2Title);
+    container.addChild(Body);
+    container.addChild(Title);
     app.ticker.add(() => {
-      s2Body.x += Math.abs(s2Body.x - 70)/10
+      Body.x += Math.abs(Body.x - 70)/10
+    })
+
+    return container;
+  },
+  (container) => {
+    const Title = new Text('What is PIXI.js?', styleHeader);
+    Title.x = 50;
+    Title.y = 50;
+
+    const Body = new Text(`• It's a tried and true framework that improves the canvas API in almost every way.`, styleBody);
+    Body.x = 70;
+    Body.y = 160;
+
+    const Body2 = new Text(`\n\n• Leverages WebGL and its API when possible making it have much better performance than the canvas.`, styleBody);
+    Body2.x = -w * + 70*2;
+    Body2.y = 160;
+
+    container.addChild(Body);
+    container.addChild(Title);
+    app.ticker.add(() => {
+      Body2.x += Math.abs(Body2.x - 70)/10
+    })
+
+    return container;
+  },
+  (container) => {
+    const Title = new Text('What is PIXI.js?', styleHeader);
+    Title.x = 50;
+    Title.y = 50;
+
+    const Body = new Text(`• It's a tried and true framework that improves the canvas API in almost every way.\n\n• Leverages WebGL and its API when possible making it have much better performance than the canvas.`, styleBody);
+    Body.x = 70;
+    Body.y = 160;
+
+    const Body2 = new Text(`\n\n• Abstracts most of the pain and suffering associated working with the HTML5 canvas from scratch.`, styleBody);
+    Body2.x = -w * + 70*2;
+    Body2.y = 160;
+
+    container.addChild(Body);
+    container.addChild(Title);
+    app.ticker.add(() => {
+      Body2.x += Math.abs(Body2.x - 70)/10
     })
 
     return container;
