@@ -62,8 +62,10 @@ class SlideController {
     this.state._statePresenterListeners.slide = this._changeSlide;
     this.state._stateMainListeners.slide = this._changeSlide;
 
-    //this._initPeer();
-    this._initControls();
+    this._initPeer()
+      .then(() => {
+        this._initControls();
+      });
   }
   // Initalizes everything to do with peers.
   _initPeer() {
@@ -196,16 +198,24 @@ class SlideController {
   // Control related methods:
 
   // Slide control:
-  _changeSlide(slide) {
+  _changeSlide(slide, cb = null) {
     app.stage.removeChildren();
     let container = new Container();
     container.width = w;
     container.h = h;
     console.log(slide);
     app.stage.addChild(slides[slide](container));
+    if (this.state._user.type === 'presenter') {
+      for (let attendee of this.state._user.peerConns) {
+        attendee.send({
+          slide
+        })
+      }
+    }
   }
 }
 
+let timeLaunched = Date.now() + 1000*60*10;
 window.currentSession = new SlideController();
 
 const SCREEN_WIDTH = 800;
@@ -221,9 +231,12 @@ let app = new Application({
 document.body.appendChild(app.view);
 // Ticker.shared.autoStart = true;
 
+// -- NOTE --
+// commented out/removed audio use in this file due to 
+// -- NOTE ---
 // const loader = new Loader();
 // loader
-//   .add('song', 'sound/song.mp3')
+// .add('song', 'sound/running.mp3')
 //   .add('knight', 'img/knight.png');
 
 // loader.load((loader, resources) => {
@@ -233,7 +246,7 @@ document.body.appendChild(app.view);
 // const init = (loader, resources) => {
 //   let { song, knight } = resources;
 
-//   // song.sound.play();
+//   // NOTE: Sytax is [ song.sound.play(); ]
 
 //   knight = new Sprite(knight.texture);
 //   knight.anchor.set(0.5);
@@ -279,6 +292,8 @@ const styleHeader = new TextStyle({
   dropShadowBlur: 13,
   dropShadowAngle: Math.PI / 6,
   dropShadowDistance: 14,
+  wordWrap: true,
+  wordWrapWidth: w - 70,
   lineJoin: 'round'
 });
 
@@ -332,6 +347,7 @@ const slides = [
 
     return container;
   },
+  // Header
   (container) => {
     const Title = new Text('What is PIXI.js?', styleHeader);
     Title.x = -500;
@@ -344,6 +360,7 @@ const slides = [
 
     return container;
   },
+  // Header + 1 Body
   (container) => {
     const Title = new Text('What is PIXI.js?', styleHeader);
     Title.x = 50;
@@ -361,6 +378,7 @@ const slides = [
 
     return container;
   },
+  // Header + 2 Body
   (container) => {
     const Title = new Text('What is PIXI.js?', styleHeader);
     Title.x = 50;
@@ -370,11 +388,18 @@ const slides = [
     Body.x = 70;
     Body.y = 160;
 
-    const Body2 = new Text(`\n\n• Leverages WebGL and its API when possible making it have much better performance than the canvas.`, styleBody);
+    const Body2 = new Text(
+      `
+
+      
+• Leverages WebGL and its API when possible making it have much better performance than the canvas.`, 
+      styleBody
+    );
     Body2.x = -w * + 70*2;
     Body2.y = 160;
 
     container.addChild(Body);
+    container.addChild(Body2);
     container.addChild(Title);
     app.ticker.add(() => {
       Body2.x += Math.abs(Body2.x - 70)/10
@@ -387,15 +412,31 @@ const slides = [
     Title.x = 50;
     Title.y = 50;
 
-    const Body = new Text(`• It's a tried and true framework that improves the canvas API in almost every way.\n\n• Leverages WebGL and its API when possible making it have much better performance than the canvas.`, styleBody);
+    const Body = new Text(
+      `• It's a tried and true framework that improves the canvas API in almost every way.
+
+• Leverages WebGL and its API when possible making it have much better performance than the canvas.`,
+       styleBody
+    );
     Body.x = 70;
     Body.y = 160;
 
-    const Body2 = new Text(`\n\n• Abstracts most of the pain and suffering associated working with the HTML5 canvas from scratch.`, styleBody);
+    const Body2 = new Text(
+      `
+
+
+
+
+
+
+• Abstracts most of the pain and suffering associated working with the HTML5 canvas from scratch.`, 
+    styleBody
+    );
     Body2.x = -w * + 70*2;
     Body2.y = 160;
 
     container.addChild(Body);
+    container.addChild(Body2);
     container.addChild(Title);
     app.ticker.add(() => {
       Body2.x += Math.abs(Body2.x - 70)/10
@@ -403,6 +444,302 @@ const slides = [
 
     return container;
   },
+  (container) => {
+    const Title = new Text('PIXI.js has it all.', styleHeader);
+    Title.x = -500;
+    Title.y = 50;
 
+    container.addChild(Title);
+    app.ticker.add(() => {
+      Title.x += Math.abs(Title.x - 50)/10
+    })
+
+    return container;
+  },
+  (container) => {
+    const Title = new Text('PIXI.js has it all.', styleHeader);
+    Title.x = 50;
+    Title.y = 50;
+
+    const Body = new Text(`• I'm not exagerating... In fact, lets take a quick look at  all of the classes we have available to us in PIXI.js.`, styleBody);
+    Body.x = -w * + 70*2;
+    Body.y = 160;
+
+    container.addChild(Body);
+    container.addChild(Title);
+    app.ticker.add(() => {
+      Body.x += Math.abs(Body.x - 70)/10
+    })
+
+    return container;
+  },
+  (container) => {
+    const Body = new Text(
+      `BasisFile
+IGLUniformData
+PIXI.AbstractBatchRenderer
+PIXI.AbstractMaskSystem
+PIXI.AbstractMultiResource
+PIXI.AbstractRenderer
+PIXI.accessibility.AccessibilityManager
+PIXI.AccessibilityManager
+PIXI.AnimatedSprite
+PIXI.Application
+PIXI.AppLoaderPlugin
+PIXI.ArrayResource
+PIXI.Attribute
+PIXI.BaseImageResource
+PIXI.BasePrepare
+PIXI.BaseRenderTexture
+PIXI.BaseTexture
+PIXI.BasisLoader
+PIXI.BasisLoader.TranscoderWorker
+PIXI.BatchDrawCall
+PIXI.BatchGeometry
+PIXI.BatchPluginFactory
+PIXI.BatchShaderGenerator
+PIXI.BatchSystem
+PIXI.BatchTextureArray
+PIXI.BitmapFont
+PIXI.BitmapFontData
+PIXI.BitmapFontLoader
+PIXI.BitmapText
+PIXI.Bounds
+PIXI.Buffer
+PIXI.BufferResource
+PIXI.CanvasExtract
+PIXI.CanvasGraphicsRenderer
+PIXI.CanvasMaskManager
+PIXI.CanvasMeshRenderer
+PIXI.CanvasPrepare
+PIXI.CanvasRenderer
+PIXI.CanvasRenderTarget
+PIXI.CanvasResource
+PIXI.CanvasSpriteRenderer
+PIXI.Circle
+PIXI.CompressedTextureLoader
+PIXI.CompressedTextureResource
+PIXI.Container
+PIXI.ContextSystem
+PIXI.CountLimiter
+PIXI.CubeResource
+PIXI.DDSLoader
+PIXI.DepthResource
+PIXI.DisplayObject
+PIXI.Ellipse
+PIXI.Extract
+PIXI.extract.CanvasExtract
+PIXI.extract.Extract
+PIXI.extract.WebGLExtract
+PIXI.extras.AnimatedSprite
+PIXI.extras.BitmapText
+PIXI.extras.TilingSprite
+PIXI.extras.TilingSpriteRenderer
+PIXI.FillStyle
+PIXI.Filter
+PIXI.FilterManager
+PIXI.filters.AlphaFilter
+PIXI.filters.BlurFilter
+PIXI.filters.BlurFilterPass
+PIXI.filters.BlurXFilter
+PIXI.filters.BlurYFilter
+PIXI.filters.ColorMatrixFilter
+PIXI.filters.DisplacementFilter
+PIXI.filters.FXAAFilter
+PIXI.filters.NoiseFilter
+PIXI.FilterSystem
+PIXI.Framebuffer
+PIXI.FramebufferSystem
+PIXI.Geometry
+PIXI.GeometrySystem
+PIXI.GLFramebuffer
+PIXI.GLProgram
+PIXI.GLTexture
+PIXI.Graphics
+PIXI.GraphicsData
+PIXI.GraphicsGeometry
+PIXI.graphicsUtils.BatchPart
+PIXI.graphicsUtils.Star
+PIXI.ImageBitmapResource
+PIXI.ImageResource
+PIXI.interaction.InteractionData
+PIXI.interaction.InteractionEvent
+PIXI.interaction.InteractionManager
+PIXI.InteractionData
+PIXI.InteractionEvent
+PIXI.InteractionManager
+PIXI.KTXLoader
+PIXI.LineStyle
+PIXI.Loader
+PIXI.LoaderResource
+PIXI.loaders.Loader
+PIXI.loaders.Resource
+PIXI.MaskData
+PIXI.MaskSystem
+PIXI.Matrix
+PIXI.Mesh
+PIXI.mesh.CanvasMeshRenderer
+PIXI.mesh.Mesh
+PIXI.mesh.MeshRenderer
+PIXI.mesh.NineSlicePlane
+PIXI.mesh.Plane
+PIXI.mesh.RawMesh
+PIXI.mesh.Rope
+PIXI.MeshBatchUvs
+PIXI.MeshGeometry
+PIXI.MeshMaterial
+PIXI.NineSlicePlane
+PIXI.ObjectRenderer
+PIXI.ObservablePoint
+PIXI.ParticleContainer
+PIXI.ParticleRenderer
+PIXI.particles.ParticleContainer
+PIXI.particles.ParticleRenderer
+PIXI.Point
+PIXI.Polygon
+PIXI.Prepare
+PIXI.prepare.BasePrepare
+PIXI.prepare.CanvasPrepare
+PIXI.prepare.Prepare
+PIXI.prepare.WebGLPrepare
+PIXI.Program
+PIXI.ProjectionSystem
+PIXI.Quad
+PIXI.QuadUv
+PIXI.Rectangle
+PIXI.Renderer
+PIXI.RenderTexture
+PIXI.RenderTexturePool
+PIXI.RenderTextureSystem
+PIXI.Resource
+PIXI.resources.BlobResource
+PIXI.RopeGeometry
+PIXI.RoundedRectangle
+PIXI.Runner
+PIXI.ScissorSystem
+PIXI.Shader
+PIXI.ShaderSystem
+PIXI.SimpleMesh
+PIXI.SimplePlane
+PIXI.SimpleRope
+PIXI.Sprite
+PIXI.SpriteMaskFilter
+PIXI.Spritesheet
+PIXI.SpritesheetLoader
+PIXI.State
+PIXI.StateSystem
+PIXI.StencilSystem
+PIXI.SVGResource
+PIXI.System
+PIXI.Text
+PIXI.TextMetrics
+PIXI.TextStyle
+PIXI.Texture
+PIXI.TextureGCSystem
+PIXI.TextureLoader
+PIXI.TextureMatrix
+PIXI.TextureSystem
+PIXI.TextureUvs
+PIXI.Ticker
+PIXI.ticker.Ticker
+PIXI.TickerPlugin
+PIXI.TilingSprite
+PIXI.TilingSpriteRenderer
+PIXI.TimeLimiter
+PIXI.Transform
+PIXI.TransformBase
+PIXI.TransformStatic
+PIXI.UniformGroup
+PIXI.utils.CanvasRenderTarget
+PIXI.utils.EventEmitter
+PIXI.VideoResource
+PIXI.ViewableBuffer
+PIXI.WebGLRenderer
+PlaneGeometry
+TemporaryDisplayObject`, 
+      styleBody
+    );
+    // -- NOTE --
+    // I removed the audio playing here because you won't have access to it with just this script.
+    // -- NOTE --
+    Body.x = 70;
+    Body.y = h + 200;
+
+    container.addChild(Body);
+    app.ticker.add(() => {
+        Body.y -= 8;
+    })
+
+    return container;
+  },
+  (container) => {
+    const Title = new Text('182 CLASSES O.o', styleHeader);
+    Title.x = 80;
+    Title.y = h + 200;
+
+    let stack = 0;
+    let left = true;
+    container.addChild(Title);
+    app.ticker.add(() => {
+      if (Title.y > h*0.35) {
+        Title.y -= 8;
+      }
+      stack += 1;
+      if (stack > 30) {
+        stack = stack % 30;
+        left = !left;
+      }
+      if (left) {
+        Title.text = '182 CLASSES O.o';
+      } else {
+        Title.text = '182 CLASSES o.O';
+      }
+    })
+
+    return container;
+  },
+  (container) => {
+    const Body = new Text(`And of course, all of those have their own special methods and features that make things even easier...`, styleBody);
+    Body.x = -w * + 70*2;
+    Body.y = h/2 - 22;
+
+    container.addChild(Body);
+    app.ticker.add(() => {
+      Body.x += Math.abs(Body.x - 70)/10
+    })
+
+    return container;
+  },
+    // Header
+    (container) => {
+      const Title = new Text('So now...', styleHeader);
+      Title.x = -500;
+      Title.y = 50;
+  
+      container.addChild(Title);
+      app.ticker.add(() => {
+        Title.x += Math.abs(Title.x - 50)/10
+      })
+  
+      return container;
+    },
+    // Header + 1 Body
+    (container) => {
+      const Title = new Text('So now...', styleHeader);
+      Title.x = 50;
+      Title.y = 50;
+  
+      const Body = new Text(`• Let's go take a look at some demos on the Pixi.js example site!`, styleBody);
+      Body.x = -w * + 70*2;
+      Body.y = 160;
+  
+      container.addChild(Body);
+      container.addChild(Title);
+      app.ticker.add(() => {
+        Body.x += Math.abs(Body.x - 70)/10
+      })
+  
+      return container;
+    },
 ];
 
