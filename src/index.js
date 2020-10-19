@@ -64,28 +64,26 @@ class SlideController {
             _user.peerID = id;
 
             if (urlParams.get('presenter')) {
-              console.log('Attendee')
+              console.log('Attendee');
               // Update the user type to attendee and the presenterID to
               // what we find in the URL params.
-              const { presenterID, peerConns } = _user;
               _user.type = 'attendee';
               _user.presenterID = urlParams.get('presenter');
+              const { presenterID } = _user;
+              console.log(urlParams.get('presenter'));
+              console.log(presenterID)
               // Create a connection to the presenter.
               _user.peerConns.push(_peer.connect(presenterID));
-              const [presenter] = peerConns;
+              const { peerConns } = _user;
+              const [ presenter ] = peerConns;
 
-              console.log(this.state)
-              presenter.on('open', function (id) {
+              // Set up the connection...
+              presenter.on('open', function () {
                 const { _statePresenter, _stateMain } = this.state;
                 this.state._statePresenter = {..._stateMain};
                 // We're connected!
                 alert(`You're connected to the presenter!`)
                 resolve();
-
-                // Error handle.
-                presenter.on('error', function (err) {
-                  console.error(err);
-                });
 
                 // When we get data from the presenter we want to update our _statePresenter.
                 presenter.on('data', function (data) {
@@ -95,37 +93,44 @@ class SlideController {
                   });
                 });
 
+              })
+              // Error handle.
+              .on('error', function (err) {
+                console.error(err);
               });
             } else if (urlParams.get("present") == "true") {
               // Change the user type to presenter.
               _user.type = 'presenter';
               // Give the user their presentation link.
-              const { peerID } = _user;
+              const { peerID, peerConns } = _user;
               alert("Entering Presenter-Mode!");
               prompt('Your presenter link is:', `localhost:8000/?presenter=${peerID}`);
               // When a user connects to us...
               console.log(_peer);
               _peer.on("connection", function (conn) {
+                console.log('Got a connection!')
                 // Push their connection to the peerConns array/
                 _user.peerConns.push(conn);
                 // Then run this code when the connection is completely
                 // established.
                 conn.on("open", function () {
+                  console.log('Established a connection!')
                   // attendees.push({
                   //   id: conn.id,
                   //   conn: conn,
                   // });
 
                   // Receive messages
-                  // conn.on("data", function (data) {
-                  //   console.log("Received", data);
-                  // });
+                  conn.on("data", function (data) {
+                    console.log("Received", data);
+                  });
 
                   // Send a connection message.
                   conn.send({
-                    presenterMessage: `You're connected! (user No. ${attendees.length})`,
+                    presenterMessage: `You're connected! (user No. ${peerConns.length})`,
                   });
                 });
+                conn.send({presenterMessage: 'Imagine using the open param XD LOSER'})
               });
               // Resolve now that we set up the logic for new 
               // connections.
@@ -142,7 +147,7 @@ class SlideController {
   }
 }
 
-const currentSession = new SlideController();
+window.currentSession = new SlideController();
 // Gives the use keyboard controls to move the .
 const initSlideControls = () => {
   const left = Keyboard("ArrowLeft"),
