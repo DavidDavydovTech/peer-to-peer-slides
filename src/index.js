@@ -1,4 +1,4 @@
-import { Application, Sprite, Loader, Graphics, Container } from 'pixi.js';
+import { Application, Sprite, Text, TextStyle, Ticker, Loader, Graphics, Container } from 'pixi.js';
 import * as PixiSound from 'pixi-sound';
 import Peer from 'peerjs';
 import Keyboard from './keyboard';
@@ -10,6 +10,7 @@ class SlideController {
     this._init = this._init.bind(this);
     this._initPeer = this._initPeer.bind(this);
     this._initControls = this._initControls.bind(this);
+    this._changeSlide = this._changeSlide.bind(this);
 
     this.state = {
       _peer: null,
@@ -20,10 +21,22 @@ class SlideController {
         presenterID: null, // The ID of the presenter this user is connected to (...if they're an attendee.)
         following: false,
       },
-      stateMain: {
-        slide: 0,
-      },
-      _statePresenter: {},
+      _stateMainListeners: {},
+      stateMain: new Proxy(
+        {slide: 0}, 
+        {
+          get: (target, prop, receiver) => {
+            return target[prop];
+          }, 
+          set: (target, prop, value) => {
+            console.log(this);
+            if (this.state._stateMainListeners.hasOwnProperty(prop)) {
+              this.state._stateMainListeners[prop](value);
+            }
+            target[prop] = value;
+          }
+        }
+      ),
       _statePresenterListeners: {},
       statePresenter: new Proxy(
         {}, 
@@ -46,7 +59,9 @@ class SlideController {
   }
 
   _init() {
-    this._initPeer();
+    this.state._statePresenterListeners.slide = this._changeSlide;
+    this.state._stateMainListeners.slide = this._changeSlide;
+    //this._initPeer();
   }
   // Initalizes everything to do with peers.
   _initPeer() {
@@ -164,29 +179,41 @@ class SlideController {
     const left = Keyboard('ArrowLeft'),
     right = Keyboard('ArrowRight'),
     space = Keyboard('Space'),
-    p = Keyboard('KeyP');
+    l = Keyboard('KeyL');
 
     left.press = () => {};
   }
   // Control related methods:
+
+  // Slide control:
+  _changeSlide(slide) {
+    app.stage.removeChildren();
+    let container = new Container();
+    container.width = w;
+    container.h = h;
+    console.log(slide);
+    app.stage.addChild(slides[slide](container));
+  }
 }
 
 window.currentSession = new SlideController();
 
 const SCREEN_WIDTH = 800;
 const SCREEN_HEIGHT = 600;
+const w = SCREEN_WIDTH;
+const h = SCREEN_HEIGHT;
 
 let app = new Application({
   width: SCREEN_WIDTH,
   height: SCREEN_HEIGHT,
-  backgroundColor: 0x1099bb,
+  backgroundColor: 0x272d37,
 });
 document.body.appendChild(app.view);
+// Ticker.shared.autoStart = true;
 
 // const loader = new Loader();
 // loader
 //   .add('song', 'sound/song.mp3')
-
 //   .add('knight', 'img/knight.png');
 
 // loader.load((loader, resources) => {
@@ -215,3 +242,115 @@ document.body.appendChild(app.view);
 //   redSquareContainer.addChild(redSquare);
 //   app.stage.addChild(redSquareContainer);
 // };
+const slideTitle = new TextStyle({
+  fontFamily: 'Arial',
+  fontSize: 150,
+  fontStyle: 'italic',
+  fontWeight: 'bold',
+  fill: ['#ffdde1', '#ee9ca7'], // gradient
+  dropShadow: true,
+  dropShadowColor: '#000000',
+  dropShadowBlur: 13,
+  dropShadowAngle: Math.PI / 6,
+  dropShadowDistance: 14,
+  wordWrap: true,
+  wordWrapWidth: 440,
+  lineJoin: 'round'
+});
+
+const styleHeader = new TextStyle({
+  fontFamily: 'Arial',
+  fontSize: 72,
+  fontStyle: 'italic',
+  fontWeight: 'bold',
+  fill: ['#ffdde1', '#ee9ca7'], // gradient
+  dropShadow: true,
+  dropShadowColor: '#000000',
+  dropShadowBlur: 13,
+  dropShadowAngle: Math.PI / 6,
+  dropShadowDistance: 14,
+  lineJoin: 'round'
+});
+
+const styleBody = new TextStyle({
+  fontFamily: 'Arial',
+  fontSize: 30,
+  fontWeight: 'bold',
+  fill: ['#FFFFFF', '#ECE9E6'], // gradient
+  dropShadow: true,
+  dropShadowColor: '#000000',
+  dropShadowBlur: 5,
+  dropShadowAngle: Math.PI / 6,
+  dropShadowDistance: 6,
+  wordWrap: true,
+  wordWrapWidth: w - 70*2,
+  lineJoin: 'round'
+});
+
+const slides = [
+  (container) => {
+    const slideTitle2 = new TextStyle({
+      fontFamily: 'Arial',
+      fontSize: 60,
+      fontStyle: 'italic',
+      fontWeight: 'bold',
+      fill: ['#b6fbff', '#83a4d4'], // gradient
+      dropShadow: true,
+      dropShadowColor: '#000000',
+      dropShadowBlur: 7,
+      dropShadowAngle: Math.PI / 6,
+      dropShadowDistance: 6,
+      wordWrap: true,
+      wordWrapWidth: w,
+      lineJoin: 'round'
+    });
+    
+    const s1Title = new Text('PIXI.JS', slideTitle);
+    s1Title.x = -500;
+    s1Title.y = 50;
+    
+    const s1Subtitle = new Text('The "Canvas Killer"', slideTitle2);
+    s1Subtitle.x = 920;
+    s1Subtitle.y = 200;
+    
+    container.addChild(s1Title);
+    container.addChild(s1Subtitle);
+    app.ticker.add(() => {
+      s1Title.x += Math.abs(s1Title.x - 50)/30
+      s1Subtitle.x -= Math.abs(s1Subtitle.x - 120)/30
+    })
+
+    return container;
+  },
+  (container) => {
+    const s2Title = new Text('What is PIXI.js?', styleHeader);
+    s2Title.x = -500;
+    s2Title.y = 50;
+
+    container.addChild(s2Title);
+    app.ticker.add(() => {
+      s2Title.x += Math.abs(s2Title.x - 50)/10
+    })
+
+    return container;
+  },
+  (container) => {
+    const s2Title = new Text('What is PIXI.js?', styleHeader);
+    s2Title.x = 50;
+    s2Title.y = 50;
+
+    const s2Body = new Text('\t• Blah blah blah text."', styleBody);
+    s2Body.x = -w * + 70*2;
+    s2Body.y = 160;
+
+    container.addChild(s2Body);
+    container.addChild(s2Title);
+    app.ticker.add(() => {
+      s2Body.x += Math.abs(s2Body.x - 70)/10
+    })
+
+    return container;
+  },
+
+];
+
