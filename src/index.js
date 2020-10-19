@@ -19,6 +19,9 @@ class SlideController {
         presenterID: null, // The ID of the presenter this user is connected to (...if they're an attendee.)
       },
       _stateMain: {
+        slide: 0,
+      },
+      _statePresenter: {
         _presenterMessage: null,
         set presenterMessage(message) {
           alert(message);
@@ -26,7 +29,6 @@ class SlideController {
         },
         slide: 0,
       },
-      _statePresenter: {},
     };
 
     this._init();
@@ -55,6 +57,7 @@ class SlideController {
           _peer.on('error', (err) => {
             alert('A fatal error occured, check the console for more details.')
             console.error(err);
+            throw err;
           })
           // Unforuntatly because of how peer.js works we need to scope
           // all our code inside this 'on open' scope.
@@ -79,24 +82,24 @@ class SlideController {
 
               // Set up the connection...
               presenter.on('open', () => {
-                const { _statePresenter, _stateMain } = this.state;
-                this.state._statePresenter = {..._stateMain};
                 // We're connected!
-                alert(`You're connected to the presenter!`)
-                resolve();
+                alert(`You're connected to the presenter! (...waiting for an additional confirmation mesage from the presenter...)`)
+                resolve(true);
 
                 // When we get data from the presenter we want to update our _statePresenter.
-                presenter.on('data', function (data) {
+                presenter.on('data', (data) => {
                   console.log("received Data: ", data);
                   Object.keys(data).forEach((e) => {
-                    _statePresenter[e] = data[e];
+                    this.state._statePresenter[e] = data[e];
                   });
                 });
 
               })
               // Error handle.
               .on('error', function (err) {
+                alert('Couldn\'t connect, check the console for details.')
                 console.error(err);
+                throw err;
               });
             } else if (urlParams.get("present") == "true") {
               // Change the user type to presenter.
@@ -130,15 +133,15 @@ class SlideController {
                     presenterMessage: `You're connected! (user No. ${peerConns.length})`,
                   });
                 });
-                conn.send({presenterMessage: 'Imagine using the open param XD LOSER'})
               });
               // Resolve now that we set up the logic for new 
               // connections.
-              resolve();
+              resolve(true);
             }
+            resolve(false);
           });
-
         }
+        resolve(false);
       } catch (err) {
         reject(err);
       }
