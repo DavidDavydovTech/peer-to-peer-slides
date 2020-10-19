@@ -1,7 +1,7 @@
-import { Application, Sprite, Loader, Graphics, Container } from "pixi.js";
-import * as PixiSound from "pixi-sound";
-import Peer from "peerjs";
-import Keyboard from "./keyboard";
+import { Application, Sprite, Loader, Graphics, Container } from 'pixi.js';
+import * as PixiSound from 'pixi-sound';
+import Peer from 'peerjs';
+import Keyboard from './keyboard';
 const sound = PixiSound.default.sound;
 
 class SlideController {
@@ -9,26 +9,37 @@ class SlideController {
     // Bind Funcs:
     this._init = this._init.bind(this);
     this._initPeer = this._initPeer.bind(this);
+    this._initControls = this._initControls.bind(this);
 
     this.state = {
       _peer: null,
       _user: {
-        type: "viewer", // Can be either viewer, attendee, or presenter.
+        type: 'viewer', // Can be either viewer, attendee, or presenter.
         peerID: null, // The peer-id of the current user.
         peerConns: [], // Any peer connections this user makes.
         presenterID: null, // The ID of the presenter this user is connected to (...if they're an attendee.)
+        following: false,
       },
-      _stateMain: {
+      stateMain: {
         slide: 0,
       },
-      _statePresenter: {
-        _presenterMessage: null,
-        set presenterMessage(message) {
-          alert(message);
-          this._presenterMessage = message;
-        },
-        slide: 0,
-      },
+      _statePresenter: {},
+      _statePresenterListeners: {},
+      statePresenter: new Proxy(
+        {}, 
+        {
+          get: (target, prop, receiver) => {
+            return target[prop];
+          }, 
+          set: (target, prop, value) => {
+            console.log(this);
+            if (this.state._statePresenterListeners.hasOwnProperty(prop)) {
+              this.state._statePresenterListeners[prop](value);
+            }
+            target[prop] = value;
+          }
+        }
+      ),
     };
 
     this._init();
@@ -46,7 +57,7 @@ class SlideController {
           // First we need to check if the correct url params are there
           // before we create a peer object.
           const urlParams = new URLSearchParams(window.location.search);
-          if (!urlParams.get('presenter') && urlParams.get("present") != "true") {
+          if (!urlParams.get('presenter') && urlParams.get('present') != 'true') {
             resolve();
           }
           // Now we know the user probably is either a presenter or a
@@ -86,11 +97,11 @@ class SlideController {
                 alert(`You're connected to the presenter! (...waiting for an additional confirmation mesage from the presenter...)`)
                 resolve(true);
 
-                // When we get data from the presenter we want to update our _statePresenter.
+                // When we get data from the presenter we want to update our statePresenter.
                 presenter.on('data', (data) => {
-                  console.log("received Data: ", data);
+                  console.log('received Data: ', data);
                   Object.keys(data).forEach((e) => {
-                    this.state._statePresenter[e] = data[e];
+                    this.state.statePresenter[e] = data[e];
                   });
                 });
 
@@ -101,22 +112,22 @@ class SlideController {
                 console.error(err);
                 throw err;
               });
-            } else if (urlParams.get("present") == "true") {
+            } else if (urlParams.get('present') == 'true') {
               // Change the user type to presenter.
               _user.type = 'presenter';
               // Give the user their presentation link.
               const { peerID, peerConns } = _user;
-              alert("Entering Presenter-Mode!");
+              alert('Entering Presenter-Mode!');
               prompt('Your presenter link is:', `localhost:8000/?presenter=${peerID}`);
               // When a user connects to us...
               console.log(_peer);
-              _peer.on("connection", (conn) => {
+              _peer.on('connection', (conn) => {
                 console.log('Got a connection!')
                 // Push their connection to the peerConns array/
                 _user.peerConns.push(conn);
                 // Then run this code when the connection is completely
                 // established.
-                conn.on("open", function () {
+                conn.on('open', function () {
                   console.log('Established a connection!')
                   // attendees.push({
                   //   id: conn.id,
@@ -124,8 +135,8 @@ class SlideController {
                   // });
 
                   // Receive messages
-                  conn.on("data", function (data) {
-                    console.log("Received", data);
+                  conn.on('data', function (data) {
+                    console.log('Received', data);
                   });
 
                   // Send a connection message.
@@ -148,17 +159,19 @@ class SlideController {
 
     });
   }
+  // Initalizes control hotkeys.
+  _initControls() {
+    const left = Keyboard('ArrowLeft'),
+    right = Keyboard('ArrowRight'),
+    space = Keyboard('Space'),
+    p = Keyboard('KeyP');
+
+    left.press = () => {};
+  }
+  // Control related methods:
 }
 
 window.currentSession = new SlideController();
-// Gives the use keyboard controls to move the .
-const initSlideControls = () => {
-  const left = Keyboard("ArrowLeft"),
-    right = Keyboard("ArrowRight"),
-    space = Keyboard("Space");
-
-  left.press = () => {};
-};
 
 const SCREEN_WIDTH = 800;
 const SCREEN_HEIGHT = 600;
@@ -172,9 +185,9 @@ document.body.appendChild(app.view);
 
 // const loader = new Loader();
 // loader
-//   .add("song", "sound/song.mp3")
+//   .add('song', 'sound/song.mp3')
 
-//   .add("knight", "img/knight.png");
+//   .add('knight', 'img/knight.png');
 
 // loader.load((loader, resources) => {
 //   init(loader, resources);
