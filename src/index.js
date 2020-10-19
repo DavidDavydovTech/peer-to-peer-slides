@@ -78,7 +78,7 @@ class SlideController {
               const [ presenter ] = peerConns;
 
               // Set up the connection...
-              presenter.on('open', function () {
+              presenter.on('open', () => {
                 const { _statePresenter, _stateMain } = this.state;
                 this.state._statePresenter = {..._stateMain};
                 // We're connected!
@@ -107,7 +107,7 @@ class SlideController {
               prompt('Your presenter link is:', `localhost:8000/?presenter=${peerID}`);
               // When a user connects to us...
               console.log(_peer);
-              _peer.on("connection", function (conn) {
+              _peer.on("connection", (conn) => {
                 console.log('Got a connection!')
                 // Push their connection to the peerConns array/
                 _user.peerConns.push(conn);
